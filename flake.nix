@@ -22,6 +22,7 @@
           name = "scanner-${version}";
           runtimeInputs = with pkgs; [
             exiftool
+            libjpeg
             sane-backends
           ];
           text = builtins.readFile (pkgs.substituteAll {
