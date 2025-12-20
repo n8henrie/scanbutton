@@ -19,10 +19,13 @@ main() {
     --source='ADF Duplex'
 
   find "${TMPDIR}" -type f -name '*_scan_*.jpg.tmp' -print0 |
-    while read -r -d $'\0' f; do
-      exiftool -Model='@modelName@' "${f}"
-      bn="$(basename "${f}")"
-      mv "${f}" "${DEST}/${bn%.tmp}"
+    while read -r -d $'\0' file; do
+      exiftool -Model='@modelName@' "${file}"
+
+      jpegtran -perfect -rotate 180 "${file}"
+
+      bn="$(basename "${file}")"
+      mv "${file}" "${DEST}/${bn%.tmp}"
     done
 }
 main "$@"
