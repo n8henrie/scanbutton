@@ -17,30 +17,14 @@
         let
           pkgs = import nixpkgs { inherit system; };
         in
-        rec {
-          default = scanScript { };
-          scanScript =
-            {
-              modelName ? "my scanner",
-              scanDestination ? "/tmp",
-            }:
-            pkgs.writeShellApplication {
-              name = "scanner";
-              runtimeInputs = with pkgs; [
-                exiftool
-                libjpeg
-                sane-backends
-              ];
-              text = builtins.readFile (
-                pkgs.substituteAll {
-                  inherit modelName scanDestination;
-                  src = ./scan.sh;
-                }
-              );
-            };
+        {
+          default = self.outputs.packages.scanScript;
+          scanScript = pkgs.callPackage ./. { };
         }
       );
-      nixosModules.default = self.nixosModules.scanner;
-      nixosModules.scanner = import ./module.nix { flake = self; };
+      nixosModules = {
+        default = self.nixosModules.scanner;
+        scanner = import ./module.nix self;
+      };
     };
 }

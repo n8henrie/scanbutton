@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
 
 set -Eeuf -o pipefail
-shopt -s inherit_errexit
-
-readonly DEST="@scanDestination@"
 
 # https://www.camroncade.com/cloud-scanner-with-raspberry-pi-fujitsu-ix500-2/
 main() {
-  TMPDIR="$(mktemp -d)"
-  readonly TMPDIR
-  local outfile
-  outfile=${TMPDIR}/$(date +'%Y%m%dT%H%M%S')_scan_%03d.jpg.tmp
+  local model=${1:-unknown_model} dest=${2:-/tmp} tmpdir outfile
+  tmpdir="$(mktemp -d)"
+  outfile=${tmpdir}/$(date +'%Y%m%dT%H%M%S')_scan_%03d.jpg.tmp
 
+  pushd "${tmpdir}"
   scanimage --resolution 300 \
     --batch="${outfile}" \
     --format=jpeg \
     --mode=color \
     --source='ADF Duplex'
 
-  find "${TMPDIR}" -type f -name '*_scan_*.jpg.tmp' -print0 |
-    while read -r -d $'\0' file; do
-      exiftool -Model='@modelName@' "${file}"
+  local name
+  find . -type f -name '*_scan_*.jpg.tmp' -print0 |
+    while read -r -d $'\0' f; do
+      : "$(basename -- "${f}")"
+      name=${_%.tmp}
 
-      jpegtran -perfect -rotate 180 "${file}"
+      exiftool -Model="${model}" -overwrite_original -- "${f}"
+      magick "${f}" -rotate 180 "${name}"
+      rm "${f}"
 
-      bn="$(basename "${file}")"
-      mv "${file}" "${DEST}/${bn%.tmp}"
+      mv -- "${name}" "${dest}/"
     done
 }
 main "$@"
