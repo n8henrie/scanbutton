@@ -48,11 +48,10 @@ in
         script = pkgs.writeShellScriptBin "run" ''
           "${exe}" "${cfg.modelName}" "${cfg.scanDestination}"
         '';
-        conf = pkgs.substituteAll {
+        conf = pkgs.replaceVars ./scanbd.conf {
           inherit (cfg) user;
           scriptPath = lib.getExe script;
           fujitsuConf = "${pkgs.scanbd}/etc/scanbd/scanner.d/fujitsu.conf";
-          src = ./scanbd.conf;
         };
       in
       {
